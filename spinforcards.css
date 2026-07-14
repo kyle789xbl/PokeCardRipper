@@ -1818,28 +1818,31 @@ button.hidden {
   }
 
   .top-actions {
-    flex-wrap: nowrap;
+    display: grid;
     gap: 8px;
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: none;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow: visible;
     width: 100%;
   }
 
-  .top-actions::-webkit-scrollbar {
-    display: none;
+  .top-actions #addCardsLink:not(.hidden) {
+    grid-column: 1 / -1;
   }
 
   .ghost-link,
   .rotation-toggle {
-    flex: 0 0 auto;
+    font-size: 12px;
     justify-content: center;
     min-height: 36px;
+    min-width: 0;
+    overflow: hidden;
+    padding: 0 6px;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .rotation-toggle span {
+    margin-left: 3px;
     min-width: 24px;
     padding: 1px 6px;
   }
@@ -1878,10 +1881,11 @@ button.hidden {
   .card-status-hud {
     gap: 6px;
     grid-template-columns: 1fr 1fr;
-    padding: 7px;
+    padding: 8px;
   }
 
   .card-status-hud div {
+    min-height: 46px;
     padding: 6px 7px;
   }
 
@@ -1891,7 +1895,9 @@ button.hidden {
   }
 
   .card-status-hud strong {
-    font-size: 13px;
+    font-size: 12px;
+    line-height: 1.12;
+    white-space: normal;
   }
 
   .spin-page {
@@ -2048,8 +2054,32 @@ button.hidden {
     grid-template-columns: repeat(4, 78px);
   }
 
+  .top-actions {
+    gap: 6px;
+  }
+
+  .ghost-link,
+  .rotation-toggle {
+    font-size: 11px;
+    padding: 0 4px;
+  }
+
+  .rotation-toggle span {
+    font-size: 10px;
+    min-width: 20px;
+    padding: 1px 4px;
+  }
+
   .card-status-hud {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card-status-hud div {
+    min-height: 42px;
+  }
+
+  .card-status-hud strong {
+    font-size: 11px;
   }
 
   .reel {
