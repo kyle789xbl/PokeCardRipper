@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TCG RIP</title>
+    <link rel="stylesheet" href="spinforcards.css">
+    <script defer src="firebase-config.js"></script>
+    <script async src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script async src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script defer src="spinforcards.js"></script>
+  </head>
+  <body class="auth-locked">
+    <header class="spin-topbar">
+      <a class="brand" href="spinforcards.html" aria-label="TCG RIP home">
+        <span class="pokeball-mark" aria-hidden="true"><span></span></span>
+        <span>TCG RIP</span>
+      </a>
+
+      <nav class="tier-bar top-tier-bar" aria-label="Spin tier">
+        <button class="tier-button is-active" type="button" data-tier="1">Tier 1 <span>5 credits</span></button>
+        <button class="tier-button" type="button" data-tier="2">Tier 2 <span>10 credits</span></button>
+        <button class="tier-button" type="button" data-tier="3">Tier 3 <span>100 credits</span></button>
+        <button class="tier-button" type="button" data-tier="4">Tier 4 <span>1000 credits</span></button>
+      </nav>
+
+      <div class="top-actions">
+        <a id="addCardsLink" class="ghost-link hidden" href="singles.html">Add Cards</a>
+        <button id="previousToggle" class="rotation-toggle" type="button" aria-expanded="false">Previous</button>
+        <button id="termsToggle" class="rotation-toggle" type="button">Terms</button>
+        <button id="accountToggle" class="rotation-toggle" type="button">Account</button>
+        <button id="creditsToggle" class="rotation-toggle" type="button">
+          Credits <span id="creditsCount">0</span>
+        </button>
+        <button id="rotationToggle" class="rotation-toggle" type="button" aria-expanded="false">
+          Rotation <span id="rotationCount">0</span>
+        </button>
+      </div>
+
+      <aside id="rotationDrawer" class="rotation-drawer" aria-label="Current rotation">
+        <div class="drawer-head">
+          <h2>Current Rotation</h2>
+          <button id="closeRotation" class="icon-button" type="button" aria-label="Close rotation">x</button>
+        </div>
+        <p id="poolSummary" class="drawer-summary">Full pool for selected tier.</p>
+        <div id="rotationList" class="rotation-list empty-state">No cards in rotation yet.</div>
+      </aside>
+
+      <aside id="previousDrawer" class="rotation-drawer side-drawer" aria-label="Previous pulls">
+        <div class="drawer-head">
+          <h2>Previous Pulls</h2>
+          <button id="closePrevious" class="icon-button" type="button" aria-label="Close previous pulls">x</button>
+        </div>
+        <div id="previousList" class="rotation-list empty-state">No previous pulls yet.</div>
+      </aside>
+    </header>
+
+    <main class="spin-page">
+      <section class="spin-stage" aria-label="TCG RIP card pull">
+        <div class="card-status-hud" aria-live="polite">
+          <div>
+            <span>Card</span>
+            <strong id="hudCardName">Ready to rip</strong>
+          </div>
+          <div>
+            <span>Set</span>
+            <strong id="hudSetName">Tier 1 selected</strong>
+          </div>
+          <div>
+            <span>Tier</span>
+            <strong id="hudTier">1</strong>
+          </div>
+          <div>
+            <span>Market</span>
+            <strong id="hudPrice">--</strong>
+          </div>
+        </div>
+
+        <div class="machine">
+          <div id="reel" class="reel" aria-live="polite">
+            <div class="reel-flash" aria-hidden="true"></div>
+            <div class="burst burst-one" aria-hidden="true"></div>
+            <div class="burst burst-two" aria-hidden="true"></div>
+            <div class="spark-field" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="reel-placeholder">Add cards to start spinning.</div>
+          </div>
+        </div>
+
+        <div id="resultPanel" class="result-panel">
+          <div>
+            <h2 id="resultName">TCG RIP</h2>
+            <p id="resultMeta">Select a tier, then rip.</p>
+          </div>
+          <div class="result-actions">
+            <div class="discount-meter">
+              <span>Next rip discount</span>
+              <strong id="discountValue">0%</strong>
+            </div>
+            <div id="postPullActions" class="post-pull-actions hidden">
+              <button id="burnButton" class="danger-button" type="button">Burn</button>
+              <button id="keepButton" type="button">Keep</button>
+            </div>
+            <button id="spinButton" class="spin-button" type="button" disabled>Rip</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <div id="rareOverlay" class="rare-overlay hidden" aria-live="polite">
+      <div class="evolution-screen">
+        <div class="evo-rays" aria-hidden="true"></div>
+        <div class="evo-orb" aria-hidden="true"></div>
+        <img id="rareImage" alt="">
+        <p id="rareLineOne">Something is happening...</p>
+        <h2 id="rareName"></h2>
+        <p id="rareLineTwo"></p>
+      </div>
+    </div>
+
+    <div id="termsModal" class="policy-modal hidden" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+      <div class="policy-card">
+        <div class="drawer-head">
+          <h2 id="termsTitle">TCG RIP Terms</h2>
+          <button id="closeTerms" class="icon-button" type="button" aria-label="Close terms">x</button>
+        </div>
+        <ul>
+          <li>Every completed rip receives one physical card from the selected tier pool.</li>
+          <li>The full selected-tier pool, quantities, probabilities, market estimates, and pricing sources are shown before ripping.</li>
+          <li>Market values are estimates only and can change. They are not a cash guarantee.</li>
+          <li>No cash redemption is offered for pulled cards or credits.</li>
+          <li>No user-to-user resale marketplace is provided on this platform.</li>
+          <li>Refund policy: unused credits may be reviewed for refund before a rip. Completed rips are fulfilled as physical card orders and are not cash-redeemable.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="creditsModal" class="policy-modal hidden" role="dialog" aria-modal="true" aria-labelledby="creditsTitle">
+      <div class="policy-card credits-card">
+        <div class="drawer-head">
+          <h2 id="creditsTitle">Purchase Credits</h2>
+          <button id="closeCredits" class="icon-button" type="button" aria-label="Close credits">x</button>
+        </div>
+        <div class="credit-balance">
+          <span>Current credits</span>
+          <strong id="modalCreditsCount">0</strong>
+        </div>
+        <div class="credit-carousel" aria-label="Credit packs">
+          <button id="creditPrev" class="carousel-arrow" type="button" aria-label="Previous credit pack">&lt;</button>
+          <div class="credit-track">
+          <button class="credit-pack" type="button" data-credits="5" data-price="5">
+            <span>Starter</span>
+            <strong>5 credits</strong>
+            <em>£5.00</em>
+          </button>
+          <button class="credit-pack" type="button" data-credits="10" data-price="9">
+            <span>Quick rip</span>
+            <strong>10 credits</strong>
+            <em>£9.00</em>
+          </button>
+          <button class="credit-pack" type="button" data-credits="25" data-price="22">
+            <span>Popular</span>
+            <strong>25 credits</strong>
+            <em>£22.00</em>
+          </button>
+          <button class="credit-pack" type="button" data-credits="100" data-price="80">
+            <span>Collector</span>
+            <strong>100 credits</strong>
+            <em>£80.00</em>
+          </button>
+          <button class="credit-pack" type="button" data-credits="1000" data-price="700">
+            <span>Vault</span>
+            <strong>1,000 credits</strong>
+            <em>Bank transfer</em>
+          </button>
+          <button class="credit-pack mega-pack" type="button" data-credits="100000" data-price="65000">
+            <span>Enterprise</span>
+            <strong>100,000 credits</strong>
+            <em>Automated bank transfer</em>
+          </button>
+          </div>
+          <button id="creditNext" class="carousel-arrow" type="button" aria-label="Next credit pack">&gt;</button>
+        </div>
+        <div class="selected-pack">
+          <span id="selectedPackText">Select a credit pack.</span>
+          <button id="mockCheckoutButton" type="button" disabled>Add demo credits</button>
+        </div>
+        <p class="policy-note">Mock screen only. Card checkout and automated bank transfer reconciliation are not connected yet.</p>
+      </div>
+    </div>
+
+    <div id="accountModal" class="policy-modal auth-overlay" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+      <div class="policy-card account-card">
+        <div class="drawer-head">
+          <h2 id="accountTitle">Login Required</h2>
+          <button id="closeAccount" class="icon-button" type="button" aria-label="Close account">x</button>
+        </div>
+
+        <div class="account-grid">
+          <section class="account-panel">
+            <div class="auth-hero">
+              <span class="pokeball-mark" aria-hidden="true"><span></span></span>
+              <div>
+                <div class="panel-kicker">TCG RIP Secure Login</div>
+                <h3>Sign in to rip</h3>
+              </div>
+            </div>
+            <div id="accountSummary" class="account-summary">Not signed in.</div>
+            <label class="auth-field">
+              Email
+              <input id="loginEmail" type="email" autocomplete="email" placeholder="collector@example.com">
+            </label>
+            <label class="auth-field">
+              Password
+              <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
+            </label>
+            <div class="modal-actions auth-actions">
+              <button id="googleSignInButton" class="google-button" type="button">Continue with Google</button>
+              <button id="signInButton" type="button">Sign in</button>
+              <button id="createAccountButton" class="secondary-button" type="button">Create account</button>
+              <button id="logoutButton" class="danger-button hidden" type="button">Log out</button>
+            </div>
+            <p id="authStatus" class="policy-note">Firebase login is required to use TCG RIP.</p>
+          </section>
+
+          <section class="account-panel address-panel">
+            <div class="panel-kicker">Postage Address</div>
+            <div class="address-search">
+              <input id="addressSearch" type="search" autocomplete="postal-code" placeholder="Search postcode">
+              <button id="findAddressButton" type="button">Find</button>
+            </div>
+            <div id="addressResults" class="address-results empty-state">Search a postcode or enter manually.</div>
+
+            <div class="address-form">
+              <label>
+                Full name
+                <input id="shipName" autocomplete="name" placeholder="Full name">
+              </label>
+              <label>
+                Address line 1
+                <input id="addressLine1" autocomplete="address-line1" placeholder="Street address">
+              </label>
+              <label>
+                Address line 2
+                <input id="addressLine2" autocomplete="address-line2" placeholder="Flat, unit, etc.">
+              </label>
+              <label>
+                Town / city
+                <input id="addressCity" autocomplete="address-level2" placeholder="Town or city">
+              </label>
+              <label>
+                Postcode
+                <input id="addressPostcode" autocomplete="postal-code" placeholder="Postcode">
+              </label>
+              <label>
+                Country
+                <input id="addressCountry" autocomplete="country-name" value="United Kingdom">
+              </label>
+            </div>
+            <div class="modal-actions address-actions">
+              <button id="saveAddressButton" type="button">Save postage</button>
+            </div>
+            <p id="addressStatus" class="policy-note">Postcode lookup runs locally in this browser. Postage saves to your Firebase account.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div id="ageGate" class="policy-modal hidden" role="dialog" aria-modal="true" aria-labelledby="ageTitle">
+      <div class="policy-card">
+        <h2 id="ageTitle">Age Check</h2>
+        <p>You must be 18 or over to use TCG RIP. Every rip awards one physical card, with no cash redemption.</p>
+        <div class="modal-actions">
+          <button id="confirmAge" type="button">I am 18+</button>
+          <a class="ghost-link" href="singles.html">Leave</a>
+        </div>
+      </div>
+    </div>
+
+    <audio id="randomizerSound" src="RandomizerSound.mp3" preload="auto"></audio>
+  </body>
+</html>

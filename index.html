@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Card Pack Builder</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tcgdex/sdk@2/dist/tcgdex.browser.global.min.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="pokeball-mark" aria-hidden="true">
+          <span></span>
+        </div>
+        <div>
+          <h1>Card Pack Builder</h1>
+          <p>Search TCGdex, add cards to the active bundle, then confirm it for sale.</p>
+        </div>
+      </div>
+      <div class="summary-strip" aria-label="Bundle summary">
+        <div>
+          <a class="nav-link" href="spinforcards.html">SpinForCards</a>
+        </div>
+        <div>
+          <span id="activeCardCount">0</span>
+          <small>active cards</small>
+        </div>
+        <div>
+          <span id="confirmedBundleCount">0</span>
+          <small>confirmed</small>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <section class="search-panel" aria-labelledby="searchTitle">
+        <div class="section-heading">
+          <h2 id="searchTitle">Card Search</h2>
+          <button id="loadCardsButton" class="secondary-button" type="button">Load cards</button>
+        </div>
+
+        <form id="searchForm" class="search-form">
+          <label>
+            <span>Card name or ID</span>
+            <input id="searchInput" type="search" placeholder="Pikachu, Charizard, sv01-001" autocomplete="off">
+          </label>
+          <button type="submit">Search</button>
+        </form>
+
+        <p id="statusLine" class="status-line">Load the TCGdex card index to begin.</p>
+        <div id="resultsGrid" class="results-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="bundle-panel" aria-labelledby="bundleTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="bundleTitle">Active Bundle</h2>
+            <p id="nextBundleLabel" class="status-line">Next confirmed bundle: #1</p>
+          </div>
+          <div class="header-actions">
+            <button id="confirmBundleButton" type="button">Confirm bundle</button>
+            <button id="clearDraftButton" class="icon-button" type="button" title="Clear active bundle" aria-label="Clear active bundle">x</button>
+          </div>
+        </div>
+
+        <div id="activeBundleList" class="stack-list empty-state">Search cards above, then add them to the active bundle.</div>
+
+        <div class="confirmed-heading">
+          <h2>Confirmed Bundles</h2>
+        </div>
+        <div id="confirmedBundleList" class="stack-list empty-state">No confirmed bundles yet.</div>
+      </section>
+    </main>
+
+    <template id="cardResultTemplate">
+      <article class="card-tile">
+        <img alt="">
+        <div>
+          <h3></h3>
+          <p></p>
+          <div class="card-actions">
+            <select aria-label="Condition">
+              <option>Near Mint</option>
+              <option>Lightly Played</option>
+              <option>Moderately Played</option>
+              <option>Heavily Played</option>
+              <option>Damaged</option>
+            </select>
+            <input type="number" min="1" value="1" aria-label="Quantity">
+            <button type="button">Add to bundle</button>
+          </div>
+        </div>
+      </article>
+    </template>
+  </body>
+</html>

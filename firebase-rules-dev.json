@@ -1,0 +1,46 @@
+{
+  "rules": {
+    "singles": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.email == 'Kyle789XBL@gmail.com' || auth.token.email == 'kyle789xbl@gmail.com')",
+      "$singleId": {
+        ".validate": "newData.hasChildren(['cardId', 'name', 'image', 'setName', 'quantity'])",
+        "cardId": { ".validate": "newData.isString()" },
+        "localId": { ".validate": "newData.isString()" },
+        "name": { ".validate": "newData.isString()" },
+        "image": { ".validate": "newData.isString()" },
+        "setName": { ".validate": "newData.isString()" },
+        "setId": { ".validate": "newData.isString()" },
+        "setOrder": { ".validate": "newData.isNumber()" },
+        "rarity": { ".validate": "newData.isString()" },
+        "isRare": { ".validate": "newData.isBoolean()" },
+        "variant": { ".validate": true },
+        "price": { ".validate": true },
+        "tier": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4" },
+        "quantity": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "createdAt": { ".validate": "newData.isString()" },
+        "updatedAt": { ".validate": "newData.isString()" },
+        "key": { ".validate": "newData.isString()" },
+        "variants": { ".validate": true }
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "postageAddress": {
+          ".validate": "newData.hasChildren(['fullName', 'line1', 'city', 'postcode', 'country'])",
+          "fullName": { ".validate": "newData.isString() && newData.val().length <= 120" },
+          "line1": { ".validate": "newData.isString() && newData.val().length <= 160" },
+          "line2": { ".validate": "newData.isString() && newData.val().length <= 160" },
+          "city": { ".validate": "newData.isString() && newData.val().length <= 80" },
+          "postcode": { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "country": { ".validate": "newData.isString() && newData.val().length <= 80" },
+          "updatedAt": { ".validate": "newData.isString()" }
+        }
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}
