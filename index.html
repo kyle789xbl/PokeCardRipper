@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TCG RIP</title>
     <link rel="stylesheet" href="spinforcards.css">
+    <style>
+      @media (max-width: 760px) {
+        .policy-modal {
+          align-items: flex-start;
+          height: 100dvh;
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .account-card,
+        .policy-card {
+          max-height: calc(100dvh - 20px);
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    </style>
     <script defer src="firebase-config.js"></script>
     <script async src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script async src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
