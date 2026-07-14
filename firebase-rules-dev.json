@@ -26,9 +26,9 @@
     },
     "users": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid",
         "postageAddress": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
           ".validate": "newData.hasChildren(['fullName', 'line1', 'city', 'postcode', 'country'])",
           "fullName": { ".validate": "newData.isString() && newData.val().length <= 120" },
           "line1": { ".validate": "newData.isString() && newData.val().length <= 160" },
@@ -37,6 +37,9 @@
           "postcode": { ".validate": "newData.isString() && newData.val().length <= 16" },
           "country": { ".validate": "newData.isString() && newData.val().length <= 80" },
           "updatedAt": { ".validate": "newData.isString()" }
+        },
+        "$other": {
+          ".validate": false
         }
       }
     },
