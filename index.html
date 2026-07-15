@@ -66,10 +66,15 @@
 
       <aside id="previousDrawer" class="rotation-drawer side-drawer" aria-label="Previous pulls">
         <div class="drawer-head">
-          <h2>Previous Pulls</h2>
+          <h2>Pulls</h2>
           <button id="closePrevious" class="icon-button" type="button" aria-label="Close previous pulls">x</button>
         </div>
-        <div id="previousList" class="rotation-list empty-state">No previous pulls yet.</div>
+        <div class="pull-tabs" role="tablist" aria-label="Pull history">
+          <button class="pull-tab is-active" type="button" data-pull-tab="kept">Kept</button>
+          <button class="pull-tab" type="button" data-pull-tab="burned">Burned</button>
+          <button class="pull-tab" type="button" data-pull-tab="shipping">Shipping Status</button>
+        </div>
+        <div id="previousList" class="rotation-list pull-history empty-state">No pulls yet.</div>
       </aside>
     </header>
 

@@ -1153,8 +1153,94 @@ select:focus {
   margin-top: 12px;
 }
 
+.pull-tabs {
+  background: rgba(7, 20, 38, 0.72);
+  border: 1px solid rgba(63, 183, 255, 0.35);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 12px;
+  padding: 6px;
+}
+
+.pull-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-size: 12px;
+  min-height: 34px;
+  overflow: hidden;
+  padding: 0 8px;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pull-tab.is-active {
+  background: var(--accent);
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 20px rgba(63, 183, 255, 0.32);
+  color: #05111f;
+}
+
+.pull-history {
+  margin-top: 10px;
+}
+
 .rotation-card {
   grid-template-columns: 58px minmax(0, 1fr);
+}
+
+.pull-card {
+  background:
+    linear-gradient(135deg, rgba(63, 183, 255, 0.14), transparent 36%),
+    var(--panel-soft);
+}
+
+.pull-card.is-burned {
+  border-color: rgba(255, 123, 114, 0.48);
+}
+
+.pull-card.is-kept {
+  border-color: rgba(247, 201, 72, 0.48);
+}
+
+.pull-card.is-pending {
+  border-color: rgba(63, 183, 255, 0.48);
+}
+
+.pull-card-head {
+  align-items: start;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.pull-status {
+  background: rgba(7, 20, 38, 0.8);
+  border: 1px solid rgba(63, 183, 255, 0.36);
+  border-radius: 999px;
+  color: var(--gold);
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+
+.is-burned .pull-status {
+  border-color: rgba(255, 123, 114, 0.42);
+  color: var(--danger);
+}
+
+.is-pending .pull-status {
+  color: var(--accent-strong);
+}
+
+.shipping-line {
+  color: #ffffff !important;
+  font-weight: 900;
 }
 
 .rotation-controls {
@@ -1854,6 +1940,18 @@ button.hidden {
     top: 8px;
     width: auto;
     z-index: 80;
+  }
+
+  .side-drawer {
+    right: 8px;
+  }
+
+  .pull-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .pull-tab {
+    font-size: 11px;
   }
 
   .search-form,

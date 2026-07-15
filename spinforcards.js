@@ -20,9 +20,11 @@ const state = {
   discount: Number(localStorage.getItem("spinforcards-discount") ?? 0),
   credits: Number(localStorage.getItem("spinforcards-credits") ?? DEFAULT_DEMO_CREDITS),
   previousPulls: loadJson("spinforcards-previous-pulls", []),
+  pullTab: "kept",
   user: null,
   address: loadJson(ADDRESS_KEY, null),
   currentPull: null,
+  currentPullLogId: null,
   isSpinning: false,
   authReady: false,
 };
@@ -36,6 +38,7 @@ const els = {
   previousDrawer: document.querySelector("#previousDrawer"),
   closePrevious: document.querySelector("#closePrevious"),
   previousList: document.querySelector("#previousList"),
+  pullTabs: document.querySelectorAll(".pull-tab"),
   termsToggle: document.querySelector("#termsToggle"),
   termsModal: document.querySelector("#termsModal"),
   closeTerms: document.querySelector("#closeTerms"),
@@ -366,7 +369,7 @@ async function spin() {
     window.clearInterval(tick);
     const pulled = pickWeightedCard();
     state.currentPull = pulled;
-    recordPreviousPull(pulled);
+    state.currentPullLogId = recordPreviousPull(pulled);
     renderSpinCard(pulled, { reveal: true });
     renderPullActions(pulled);
     triggerRevealEffects();
@@ -433,6 +436,11 @@ function playRareSfx() {
 
 function burnPull() {
   if (!state.currentPull) return;
+  updatePullRecord(state.currentPullLogId, {
+    status: "burned",
+    shippingStatus: "Burned - no shipment",
+    resolvedAt: new Date().toISOString(),
+  });
   state.discount = Math.min(100, state.discount + 5);
   localStorage.setItem("spinforcards-discount", state.discount);
   clearPull();
@@ -448,6 +456,11 @@ async function keepPull() {
     els.resultMeta.textContent = "Inventory update needs the secure rip backend.";
     return;
   }
+  updatePullRecord(state.currentPullLogId, {
+    status: "kept",
+    shippingStatus: "Pending fulfillment",
+    resolvedAt: new Date().toISOString(),
+  });
   state.discount = 0;
   localStorage.setItem("spinforcards-discount", state.discount);
   clearPull();
@@ -456,6 +469,7 @@ async function keepPull() {
 
 function clearPull() {
   state.currentPull = null;
+  state.currentPullLogId = null;
   els.resultName.textContent = "TCG RIP";
   els.resultMeta.textContent = `Tier ${state.selectedTier} selected - ${selectedTierCost()} credits per rip.`;
   els.postPullActions.classList.add("hidden");
@@ -855,8 +869,10 @@ function renderAccount() {
 }
 
 function recordPreviousPull(card) {
-  if (!card) return;
+  if (!card) return null;
+  const logId = `pull-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   state.previousPulls.unshift({
+    id: logId,
     pulledAt: new Date().toISOString(),
     cardId: card.cardId,
     name: card.name,
@@ -865,9 +881,21 @@ function recordPreviousPull(card) {
     price: card.price,
     variant: card.variant,
     image: card.image,
+    status: "pending",
+    shippingStatus: "Choose keep or burn",
   });
   state.previousPulls = state.previousPulls.slice(0, 25);
   localStorage.setItem("spinforcards-previous-pulls", JSON.stringify(state.previousPulls));
+  return logId;
+}
+
+function updatePullRecord(id, changes) {
+  if (!id) return;
+  state.previousPulls = state.previousPulls.map((pull) => (
+    pull.id === id ? { ...pull, ...changes } : pull
+  ));
+  localStorage.setItem("spinforcards-previous-pulls", JSON.stringify(state.previousPulls));
+  renderPreviousPulls();
 }
 
 function renderRotation() {
@@ -912,31 +940,70 @@ function renderRotation() {
 
 function renderPreviousPulls() {
   els.previousList.replaceChildren();
-  if (!state.previousPulls.length) {
-    els.previousList.textContent = "No previous pulls yet.";
+  els.pullTabs.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.pullTab === state.pullTab);
+  });
+
+  const pulls = filteredPullHistory();
+  if (!pulls.length) {
+    els.previousList.textContent = getEmptyPullMessage();
     els.previousList.classList.add("empty-state");
     return;
   }
 
   els.previousList.classList.remove("empty-state");
   const fragment = document.createDocumentFragment();
-  state.previousPulls.forEach((card) => {
+  pulls.forEach((card) => {
     const article = document.createElement("article");
-    article.className = "rotation-card";
+    article.className = `rotation-card pull-card is-${getPullStatus(card)}`;
     article.innerHTML = `
       <img alt="${escapeHtml(card.name)} card image">
       <div>
-        <h3>${escapeHtml(card.name)}</h3>
+        <div class="pull-card-head">
+          <h3>${escapeHtml(card.name)}</h3>
+          <span class="pull-status">${escapeHtml(formatPullStatus(card))}</span>
+        </div>
         <p>${escapeHtml(card.setName)} - Tier ${clampTier(card.tier)}</p>
         <p>${escapeHtml(formatVariant(card.variant))}</p>
         <p>${escapeHtml(formatPriceWithSource(card.price))}</p>
         <p>${new Date(card.pulledAt).toLocaleString()}</p>
+        ${state.pullTab === "shipping" ? `<p class="shipping-line">${escapeHtml(card.shippingStatus ?? "Pending fulfillment")}</p>` : ""}
       </div>
     `;
     applyImageFallback(article.querySelector("img"), card);
     fragment.append(article);
   });
   els.previousList.append(fragment);
+}
+
+function filteredPullHistory() {
+  if (state.pullTab === "burned") {
+    return state.previousPulls.filter((pull) => getPullStatus(pull) === "burned");
+  }
+  if (state.pullTab === "shipping") {
+    return state.previousPulls.filter((pull) => getPullStatus(pull) === "kept");
+  }
+  return state.previousPulls.filter((pull) => {
+    const status = getPullStatus(pull);
+    return status === "kept" || status === "pending";
+  });
+}
+
+function getPullStatus(pull) {
+  return pull.status ?? "kept";
+}
+
+function formatPullStatus(pull) {
+  const status = getPullStatus(pull);
+  if (status === "burned") return "Burned";
+  if (status === "pending") return "Pending";
+  return "Kept";
+}
+
+function getEmptyPullMessage() {
+  if (state.pullTab === "burned") return "No burned pulls yet.";
+  if (state.pullTab === "shipping") return "No kept cards awaiting shipment yet.";
+  return "No kept pulls yet.";
 }
 
 function formatPrice(price) {
@@ -1006,6 +1073,13 @@ els.previousToggle.addEventListener("click", () => {
 els.closePrevious.addEventListener("click", () => {
   els.previousDrawer.classList.remove("is-open");
   els.previousToggle.setAttribute("aria-expanded", "false");
+});
+
+els.pullTabs.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.pullTab = button.dataset.pullTab;
+    renderPreviousPulls();
+  });
 });
 
 els.termsToggle.addEventListener("click", () => els.termsModal.classList.remove("hidden"));
